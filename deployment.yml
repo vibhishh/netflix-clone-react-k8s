@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: netflix-app
+  name: netflix-clone
   labels:
-    app: netflix-app
+    app: netflix-clone
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: netflix-app
+      app: netflix-clone
   template:
     metadata:
       labels:
-        app: netflix-app
+        app: netflix-clone
     spec:
       containers:
-      - name: netflix-app
-        image: gajananbarure/my_netflixapp_image
+      - name: netflix-clone
+        image: mradulsingh25/netflix-clone
         ports:
         - containerPort: 80
