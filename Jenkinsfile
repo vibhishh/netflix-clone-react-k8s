@@ -43,11 +43,17 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-        stage("Docker Build & Push"){
+         stage('OWASP FileSystem Scan') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+         stage("Docker Build & Push"){
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){
-                       sh "docker build -t netflix ."
+                       sh "docker build --build-arg TMDB_V3_API_KEY=5a42428091508045b584c736ee5e03f3 -t netflix ."
                        sh "docker tag netflix mradulsingh25/netflix:latest "
                        sh "docker push mradulsingh25/netflix:latest "
                     }
@@ -59,15 +65,16 @@ pipeline{
                 sh "trivy image mradulsingh25/netflix:latest > trivy.txt"
             }
         }
-         post {
-          always {
-             emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>",
-                to: 'mradulsingh1725@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+    }
+    post {
+     always {
+        emailext attachLog: true,
+            subject: "'${currentBuild.result}'",
+            body: "Project: ${env.JOB_NAME}<br/>" +
+                "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                "URL: ${env.BUILD_URL}<br/>",
+            to: 'vibhishh@gmail.com',
+            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
             }
         }
         stage('Deploy to kubernetes'){
@@ -81,4 +88,3 @@ pipeline{
             }
         }
     }
-}
