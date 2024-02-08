@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: netflix-clone
+  name: netflix
   labels:
-    app: netflix-clone
+    app: netflix
 spec:
   type: NodePort
   ports:
@@ -11,4 +11,4 @@ spec:
     targetPort: 80
     nodePort: 30007
   selector:
-    app: netflix-clone
+    app: netflix
