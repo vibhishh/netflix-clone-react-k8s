@@ -43,17 +43,17 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-         stage('OWASP FileSystem Scan') {
+        stage('OWASP FileSystem Scan') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-         stage("Docker Build & Push"){
+        stage("Docker Build & Push"){
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){
-                       sh "docker build --build-arg TMDB_V3_API_KEY=5a42428091508045b584c736ee5e03f3 -t netflix ."
+                       sh "docker build --build-arg TMDB_V3_API_KEY=<your_api_key_here> -t netflix ."
                        sh "docker tag netflix mradulsingh25/netflix:latest "
                        sh "docker push mradulsingh25/netflix:latest "
                     }
@@ -63,6 +63,16 @@ pipeline{
         stage("Trivy Image Scan"){
             steps{
                 sh "trivy image mradulsingh25/netflix:latest > trivy.txt"
+            }
+        }
+        stage('Deploy to kubernetes'){
+            steps{
+                script{
+                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                       sh 'kubectl apply -f deployment.yml'
+                       sh 'kubectl apply -f service.yml'
+                    }
+                }
             }
         }
     }
@@ -77,14 +87,5 @@ pipeline{
             attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
             }
         }
-        stage('Deploy to kubernetes'){
-            steps{
-                script{
-                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                       sh 'kubectl apply -f deployment.yml'
-                       sh 'kubectl apply -f service.yml'
-                    }
-                }
-            }
-        }
     }
+    
